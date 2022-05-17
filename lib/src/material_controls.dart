@@ -9,7 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class MaterialControls extends StatefulWidget {
-  const MaterialControls({Key? key}) : super(key: key);
+  const MaterialControls({
+    this.backgroundColor,
+    this.iconColor,
+    Key? key,
+  }) : super(key: key);
+
+  final Color? backgroundColor;
+  final Color? iconColor;
 
   @override
   State<StatefulWidget> createState() {
@@ -36,9 +43,9 @@ class _MaterialControlsState extends State<MaterialControls>
   Widget build(BuildContext context) {
     if (_latestValue.hasError) {
       return chewieController.errorBuilder?.call(
-            context,
-            chewieController.videoPlayerController.value.errorDescription,
-          ) ??
+        context,
+        chewieController.videoPlayerController.value.errorDescription,
+      ) ??
           const Center(
             child: Icon(
               Icons.error,
@@ -48,7 +55,9 @@ class _MaterialControlsState extends State<MaterialControls>
           );
     }
 
-    return _buildBottomBar(context);
+    final iconColor = widget.iconColor ?? Theme.of(context).colorScheme.secondary;
+
+    return _buildBottomBar(context, iconColor);
   }
 
   @override
@@ -78,20 +87,19 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   Container _buildBottomBar(
-    BuildContext context,
-  ) {
-    final iconColor = Theme.of(context).textTheme.button!.color;
-
+      BuildContext context,
+      Color iconColor,
+      ) {
     return Container(
       height: barHeight,
-      color: Theme.of(context).dialogBackgroundColor,
+      color: widget.backgroundColor ?? Theme.of(context).dialogBackgroundColor,
       child: Row(
         children: <Widget>[
-          _buildPlayPause(controller),
+          _buildPlayPause(controller, iconColor),
           if (chewieController.isLive)
             const Expanded(child: Text('LIVE'))
           else
-            _buildPosition(iconColor),
+            _buildPosition(),
           if (chewieController.isLive)
             const SizedBox()
           else
@@ -105,8 +113,8 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   Widget _buildSpeedButton(
-    VideoPlayerController controller,
-  ) {
+      VideoPlayerController controller,
+      ) {
     return GestureDetector(
       onTap: () async {
         final chosenSpeed = await showModalBottomSheet<double>(
@@ -137,8 +145,8 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   GestureDetector _buildMuteButton(
-    VideoPlayerController controller,
-  ) {
+      VideoPlayerController controller,
+      ) {
     return GestureDetector(
       onTap: () {
         if (_latestValue.volume == 0) {
@@ -163,7 +171,7 @@ class _MaterialControlsState extends State<MaterialControls>
     );
   }
 
-  GestureDetector _buildPlayPause(VideoPlayerController controller) {
+  GestureDetector _buildPlayPause(VideoPlayerController controller, Color iconColor) {
     return GestureDetector(
       onTap: _playPause,
       child: Container(
@@ -175,13 +183,14 @@ class _MaterialControlsState extends State<MaterialControls>
           right: 12.0,
         ),
         child: AnimatedPlayPause(
+          color: iconColor,
           playing: controller.value.isPlaying,
         ),
       ),
     );
   }
 
-  Widget _buildPosition(Color? iconColor) {
+  Widget _buildPosition() {
     final position = _latestValue.position;
     final duration = _latestValue.duration;
 
@@ -239,10 +248,11 @@ class _MaterialControlsState extends State<MaterialControls>
           onDragEnd: () {},
           colors: chewieController.materialProgressColors ??
               ChewieProgressColors(
-                  playedColor: Theme.of(context).accentColor,
-                  handleColor: Theme.of(context).accentColor,
-                  bufferedColor: Theme.of(context).backgroundColor,
-                  backgroundColor: Theme.of(context).disabledColor),
+                playedColor: Theme.of(context).colorScheme.secondary,
+                handleColor: Theme.of(context).colorScheme.secondary,
+                bufferedColor: Theme.of(context).backgroundColor.withOpacity(0.5),
+                backgroundColor: Theme.of(context).disabledColor.withOpacity(.5),
+              ),
         ),
       ),
     );
